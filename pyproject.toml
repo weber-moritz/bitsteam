@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bitsteam"
+version = "0.1.1"
+authors = [
+  { name="weber-moritz"},
+]
+description = "A Python library for reading raw HID input from the Steam Deck, bypassing Steam Input."
+readme = "README.md"
+license = { file="LICENSE" }
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Topic :: System :: Hardware :: Hardware Drivers",
+    "Intended Audience :: Developers",
+]
+dependencies = [
+    "hidapi",
+    "scipy",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/weber-moritz/bitsteam"
+"Bug Tracker" = "https://github.com/weber-moritz/bitsteam/issues"
