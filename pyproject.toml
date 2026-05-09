@@ -27,3 +27,6 @@ dependencies = [
 [project.urls]
 "Homepage" = "https://github.com/weber-moritz/bitsteam"
 "Bug Tracker" = "https://github.com/weber-moritz/bitsteam/issues"
+
+[tool.setuptools.packages.find]
+include = ["bitsteam*"]

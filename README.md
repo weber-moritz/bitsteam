@@ -43,9 +43,11 @@ Here is a simple example to get you started.
 
 ```python
 import time
-from bitsteam.deck import SteamDeck
+from bitsteam import SteamDeck
 
 # Initialize and start the background listener
+# The constructor will try to auto-discover the Steam Deck HID device.
+# If discovery fails it falls back to `/dev/hidraw2` for compatibility.
 deck = SteamDeck()
 deck.start()
 

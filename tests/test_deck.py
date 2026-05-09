@@ -207,6 +207,58 @@ class SteamDeckTests(unittest.TestCase):
         self.assertTrue(deck.buttons["select"])
         self.assertFalse(deck.buttons["dpad_up"])
 
+    def test_full_button_map_bits(self):
+        """Verify dashboard-mapped bits for lower grips, stick touch, dpad, and quick access."""
+        deck = SteamDeck()
+
+        # dpad_right is byte9 & 0x02
+        packet = build_packet()
+        packet[9] = 0x02
+        with patch.object(deck, "_parse_imu"):
+            deck._parse_input(packet)
+        self.assertTrue(deck.buttons["dpad_right"])
+
+        # dpad_down is byte9 & 0x08
+        packet = build_packet()
+        packet[9] = 0x08
+        with patch.object(deck, "_parse_imu"):
+            deck._parse_input(packet)
+        self.assertTrue(deck.buttons["dpad_down"])
+
+        # left lower grip is byte9 & 0x80
+        packet = build_packet()
+        packet[9] = 0x80
+        with patch.object(deck, "_parse_imu"):
+            deck._parse_input(packet)
+        self.assertTrue(deck.buttons["l_lower_grip"])
+
+        # right lower grip is byte10 & 0x01
+        packet = build_packet()
+        packet[10] = 0x01
+        with patch.object(deck, "_parse_imu"):
+            deck._parse_input(packet)
+        self.assertTrue(deck.buttons["r_lower_grip"])
+
+        # stick touch bits on byte13
+        packet = build_packet()
+        packet[13] = 0x40
+        with patch.object(deck, "_parse_imu"):
+            deck._parse_input(packet)
+        self.assertTrue(deck.buttons["l_stick_touch"])
+
+        packet = build_packet()
+        packet[13] = 0x80
+        with patch.object(deck, "_parse_imu"):
+            deck._parse_input(packet)
+        self.assertTrue(deck.buttons["r_stick_touch"])
+
+        # quick access on byte14 & 0x04
+        packet = build_packet()
+        packet[14] = 0x04
+        with patch.object(deck, "_parse_imu"):
+            deck._parse_input(packet)
+        self.assertTrue(deck.buttons["quick_access"])
+
     def test_parse_imu_first_frame_sets_reference_orientation(self):
         deck = SteamDeck()
         packet = build_packet()
@@ -221,7 +273,8 @@ class SteamDeckTests(unittest.TestCase):
 
         self.assertFalse(deck.is_first_imu_frame)
 
-    def test_parse_imu_second_frame_updates_rates(self):
+    @patch("bitsteam.deck.time.perf_counter", side_effect=[1.0, 1.016])
+    def test_parse_imu_second_frame_updates_rates(self, _mock_perf):
         deck = SteamDeck()
         packet = build_packet()
 
@@ -349,7 +402,7 @@ class SteamDeckTests(unittest.TestCase):
 
         self.assertEqual(deck.device_path, b"/dev/hidraw2")
 
-    def test_autodiscovery_raises_clear_error_when_not_found(self):
+    def test_autodiscovery_falls_back_to_default_when_not_found(self):
         devices = [
             {
                 "vendor_id": 0x28DE,
@@ -366,8 +419,10 @@ class SteamDeckTests(unittest.TestCase):
         ]
 
         with patch("bitsteam.deck.hid.enumerate", return_value=devices):
-            with self.assertRaises(RuntimeError):
-                SteamDeck(device_path=None)
+            deck = SteamDeck(device_path=None)
+
+        # Discovery fails; constructor falls back to the legacy path
+        self.assertEqual(deck.device_path, b"/dev/hidraw2")
 
     def test_autodiscovery_skips_enumeration_for_explicit_path(self):
         with patch("bitsteam.deck.hid.enumerate") as enumerate_mock:
