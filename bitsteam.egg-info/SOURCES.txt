@@ -8,3 +8,4 @@ bitsteam.egg-info/SOURCES.txt
 bitsteam.egg-info/dependency_links.txt
 bitsteam.egg-info/requires.txt
 bitsteam.egg-info/top_level.txt
+tests/test_deck.py

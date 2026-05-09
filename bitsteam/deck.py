@@ -12,8 +12,11 @@ class SteamDeck:
         """
         Initializes the Steam Deck controller.
 
-        :param device_path: The HID device path for the Steam Deck. You may need to change this.
+        :param device_path: The HID device path for the Steam Deck. Pass None to auto-discover.
         """
+        if device_path is None:
+            device_path = self._discover_device_path()
+
         self.device_path = device_path
         self.is_running = False
         self._thread = None
@@ -44,6 +47,20 @@ class SteamDeck:
         
         self.previous_device_orientation = R.identity()
         self.is_first_imu_frame = True
+
+    def _discover_device_path(self):
+        """
+        Finds the Steam Deck hidraw path by inspecting enumerated HID devices.
+        """
+        for device in hid.enumerate():
+            vendor_id = device.get('vendor_id')
+            product_id = device.get('product_id')
+            interface_number = device.get('interface_number')
+
+            if vendor_id == 0x28DE and product_id == 0x1205 and interface_number == 2:
+                return device.get('path')
+
+        raise RuntimeError('Could not auto-discover the Steam Deck HID device.')
 
     def _read_and_parse_thread(self):
         """
@@ -80,14 +97,14 @@ class SteamDeck:
             self.buttons['r2_click'] = bool(byte8 & 0x01)
 
             byte9 = data[9]
-            self.buttons['dpad_up'] = bool(byte9 & 0x10)
-            self.buttons['dpad_down'] = bool(byte9 & 0x08)
+            self.buttons['dpad_up'] = bool(byte9 & 0x01)
+            self.buttons['dpad_down'] = bool(byte9 & 0x02)
             self.buttons['dpad_left'] = bool(byte9 & 0x04)
-            self.buttons['dpad_right'] = bool(byte9 & 0x02)
+            self.buttons['dpad_right'] = bool(byte9 & 0x08)
             self.buttons['select'] = bool(byte9 & 0x10)
             self.buttons['start'] = bool(byte9 & 0x40)
             self.buttons['steam'] = bool(byte9 & 0x20)
-            self.buttons['quick_access'] = bool(byte9 & 0x04)
+            self.buttons['quick_access'] = bool(byte9 & 0x80)
             self.buttons['l_lower_grip'] = bool(byte9 & 0x80)
             self.buttons['r_lower_grip'] = bool(byte9 & 0x01)
 
