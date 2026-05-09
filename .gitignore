@@ -6,11 +6,10 @@ __pycache__/
 .Python
 env/
 venv/
+.venv/
 pip-selfcheck.json
 
 # Build artifacts
 build/
 dist/
-*.egg-info/```
-
-venv/
+*.egg-info/
