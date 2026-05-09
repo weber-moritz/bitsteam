@@ -1,6 +1,5 @@
-**Disclaimer:** *This is an work in progress project that happened during the development of another project.
-Dont take it as done, stable or secure.
-It only works on the Steam Deck.
+**Disclaimer:** *This is a work-in-progress project created during the development of another project.
+Do not treat it as stable or secure. It currently only supports the Steam Deck hardware.
 It was created with the help of generative AI.*
 
 # Bitsteam
@@ -31,10 +30,16 @@ pip install bitsteam
 
 ## Quick Start
 
-### Small Tip:
-To disable the steam input for desktop, enter `Steam`>`Settings`>`Controller`>`Desltop Layout`>`Edit` and remove what the buttons do. But set `Gyro Bhavior` to `Gyro To Mouse [Beta]` to permanently enable the gyro, even when entering desktop mode.
+### Important: Supported platforms & Steam input notes
+Supported platforms: Linux (Steam Deck). This library is not tested or supported on Windows or macOS.
 
-Otherwise, the Deck will translate the controller input to keyboard and mouse inputs, which could conflict with the input of your own application.
+To avoid Steam translating controller input to keyboard/mouse events, disable or adjust Steam Input for desktop mode. In Steam: Settings → Controller → Desktop Configuration → Edit. Set `Gyro Behavior` to `Gyro To Mouse [Beta]` if you want the gyro to remain enabled in desktop mode. Follow the udev instructions in the `docs` folder to allow raw HID access without running as root.
+
+You can run the shipped example script directly:
+
+```bash
+python examples/simple_usage.py
+```
 
 
 ### Example Code
@@ -68,16 +73,17 @@ finally:
 
 ## Contributing
 
-Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/your-username/bitsteam/issues).
+Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/weber-moritz/bitsteam/issues).
 
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
-## Note To Self:
-To compile the python project, execute this in the project dir:
+## Release Checklist
 
-``` bash
+Before publishing a new release:
+
+```bash
 python -m venv venv
 source venv/bin/activate
 pip install build twine
@@ -85,9 +91,13 @@ pip install build twine
 # remove old build before building again
 rm -rf dist/
 
-# remember to iterate the version in pyproject.toml
+# update version in pyproject.toml
 python -m build
 
+# verify package metadata and README rendering
+python -m twine check dist/*
+
+# publish to PyPI
 python -m twine upload dist/*
-# enter api key (created in pypi user settings > api token)
+# use a PyPI API token from account settings
 ```
