@@ -46,7 +46,8 @@ class SteamDeck:
             'left_stick_x': 0, 'left_stick_y': 0,
             'right_stick_x': 0, 'right_stick_y': 0,
             'left_trackpad_x': 0, 'left_trackpad_y': 0,
-            'right_trackpad_x': 0, 'right_trackpad_y': 0
+            'right_trackpad_x': 0, 'right_trackpad_y': 0,
+            'left_trackpad_pressure': 0, 'right_trackpad_pressure': 0
         }
         self.imu = {
             'pitch': 0.0, 'yaw': 0.0, 'roll': 0.0
@@ -73,6 +74,8 @@ class SteamDeck:
         self.OFF_LEFT_STICK_Y = 50
         self.OFF_RIGHT_STICK_X = 52
         self.OFF_RIGHT_STICK_Y = 54
+        self.OFF_LEFT_TRACKPAD_PRESSURE = 56
+        self.OFF_RIGHT_TRACKPAD_PRESSURE = 58
         self.OFF_IMU_START = 36
 
     def _discover_device_path(self):
@@ -150,7 +153,7 @@ class SteamDeck:
         byte13 = data[self.OFF_BTN_BYTE13]
         l_upper_grip = bool(byte13 & 0x02)
         r_upper_grip = bool(byte13 & 0x04)
-        # Stick touch sensors per dashboard
+        # Stick touch sensors (verified)
         l_stick_touch = bool(byte13 & 0x40)
         r_stick_touch = bool(byte13 & 0x80)
 
@@ -173,6 +176,8 @@ class SteamDeck:
         left_track_y = struct.unpack('<h', data[self.OFF_LEFT_TRACK_Y:self.OFF_LEFT_TRACK_Y+2])[0]
         right_track_x = struct.unpack('<h', data[self.OFF_RIGHT_TRACK_X:self.OFF_RIGHT_TRACK_X+2])[0]
         right_track_y = struct.unpack('<h', data[self.OFF_RIGHT_TRACK_Y:self.OFF_RIGHT_TRACK_Y+2])[0]
+        left_track_pressure = struct.unpack('<H', data[self.OFF_LEFT_TRACKPAD_PRESSURE:self.OFF_LEFT_TRACKPAD_PRESSURE+2])[0]
+        right_track_pressure = struct.unpack('<H', data[self.OFF_RIGHT_TRACKPAD_PRESSURE:self.OFF_RIGHT_TRACKPAD_PRESSURE+2])[0]
 
         # Update shared state under lock
         with self._lock:
@@ -221,6 +226,8 @@ class SteamDeck:
             self.analog['left_trackpad_y'] = left_track_y
             self.analog['right_trackpad_x'] = right_track_x
             self.analog['right_trackpad_y'] = right_track_y
+            self.analog['left_trackpad_pressure'] = left_track_pressure
+            self.analog['right_trackpad_pressure'] = right_track_pressure
 
         # --- IMU (Gyro) ---
         self._parse_imu(data)

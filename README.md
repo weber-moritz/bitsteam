@@ -1,6 +1,4 @@
-**Disclaimer:** *This is a work-in-progress project created during the development of another project.
-Do not treat it as stable or secure. It currently only supports the Steam Deck hardware.
-It was created with the help of generative AI.*
+**Disclaimer:** *This is a work-in-progress project created during the development of another project. It currently only supports the Steam Deck hardware. It was created with the help of generative AI.*
 
 # Bitsteam
 

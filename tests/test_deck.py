@@ -1,5 +1,6 @@
 import struct
 import sys
+import threading
 import types
 import unittest
 from unittest.mock import MagicMock, patch
@@ -95,6 +96,12 @@ def set_u16(packet, offset, value):
 
 
 class SteamDeckTests(unittest.TestCase):
+    def test_trackpad_pressures_initialized(self):
+        """Test that trackpad pressures are initialized to 0."""
+        deck = SteamDeck()
+        assert deck.analog['left_trackpad_pressure'] == 0
+        assert deck.analog['right_trackpad_pressure'] == 0
+
     def test_init_sets_default_state(self):
         deck = SteamDeck()
 
@@ -430,6 +437,54 @@ class SteamDeckTests(unittest.TestCase):
 
         self.assertEqual(deck.device_path, b"/dev/hidraw-custom")
         enumerate_mock.assert_not_called()
+
+    def test_left_trackpad_pressure_parsing(self):
+        """Test that left trackpad pressure is correctly parsed from bytes 56-57."""
+        packet = build_packet()
+        pressure_value = 12345
+        set_u16(packet, 56, pressure_value)
+
+        deck = SteamDeck()
+        with patch.object(threading, 'Thread', FakeThread):
+            deck.start()
+
+        deck._parse_input(packet)
+
+        with deck._lock:
+            self.assertEqual(deck.analog['left_trackpad_pressure'], pressure_value)
+
+    def test_right_trackpad_pressure_parsing(self):
+        """Test that right trackpad pressure is correctly parsed from bytes 58-59."""
+        packet = build_packet()
+        pressure_value = 54321
+        set_u16(packet, 58, pressure_value)
+
+        deck = SteamDeck()
+        with patch.object(threading, 'Thread', FakeThread):
+            deck.start()
+
+        deck._parse_input(packet)
+
+        with deck._lock:
+            self.assertEqual(deck.analog['right_trackpad_pressure'], pressure_value)
+
+    def test_both_trackpad_pressures_simultaneous(self):
+        """Test that both trackpad pressures are parsed simultaneously."""
+        packet = build_packet()
+        left_pressure = 11111
+        right_pressure = 22222
+        set_u16(packet, 56, left_pressure)
+        set_u16(packet, 58, right_pressure)
+
+        deck = SteamDeck()
+        with patch.object(threading, 'Thread', FakeThread):
+            deck.start()
+
+        deck._parse_input(packet)
+
+        with deck._lock:
+            self.assertEqual(deck.analog['left_trackpad_pressure'], left_pressure)
+            self.assertEqual(deck.analog['right_trackpad_pressure'], right_pressure)
 
 
 if __name__ == "__main__":
